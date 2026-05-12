@@ -69,10 +69,28 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+For a locked environment with tested versions:
+
+```bash
+pip install -r requirements-locked.txt
+```
+
 ### 5. Run the project
 
 ```bash
 python3 detect.py
+```
+
+Or with a video file for testing:
+
+```bash
+python3 detect.py path/to/your/video.mp4
+```
+
+Or with a video file for testing:
+
+```bash
+python3 detect.py path/to/your/video.mp4
 ```
 
 ---
@@ -104,11 +122,43 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+For a locked environment with tested versions:
+
+```bash
+pip install -r requirements-locked.txt
+```
+
 ### 5. Run the project
 
 ```bash
 python detect.py
 ```
+
+Or with a video file for testing:
+
+```bash
+python detect.py path/to/your/video.mp4
+```
+
+---
+
+## Testing
+
+To test the fire detection system:
+
+1. **With webcam:** Ensure your webcam is connected and not used by other applications
+2. **With video file:** Place a video file (e.g., `fire_video.mp4`) in the project directory, or run:
+   ```bash
+   python detect.py your_video.mp4
+   ```
+
+The system will:
+- Display a window showing the video feed with bounding boxes around detected fires
+- Play an alarm sound when fire is detected (if `Alarm.wav` is present)
+- Send email alerts (configure email settings in the script)
+- Log fire detection events to `output/log.txt`
+
+Press 'q' to quit the application.
 
 ---
 
@@ -189,9 +239,6 @@ model/best.pt
 * Ensure `.venv/`, dataset and output files are ignored using `.gitignore`
 * Detection accuracy depends on dataset quality
 * Include small flame data (matchstick, lighter) for better performance
-
----
-
-## License
-
+* The script gracefully handles missing `simpleaudio` package (audio alerts disabled)
+* Use `requirements-locked.txt` for reproducible environment with tested versions
 This project is for educational and research purposes only.

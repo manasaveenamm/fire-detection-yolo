@@ -1,0 +1,16 @@
+.git
+.github
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+.env
+.venv
+venv/
+ENV/
+runs/
+datasets/
+*.pt
+*.onnx
+*.engine

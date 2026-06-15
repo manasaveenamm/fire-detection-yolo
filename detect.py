@@ -22,7 +22,11 @@ if platform.system() == "Windows":
         import winsound
         WINSOUND_AVAILABLE = True
     except ImportError:
+        winsonud = None
         WINSOUND_AVAILABLE = False
+
+# Ensure output directory exists for logging and videos
+os.makedirs("output", exist_ok=True)
 
 # Parse command line arguments
 video_file = None
@@ -39,7 +43,6 @@ if not os.path.exists(model_path):
     exit(1)
 
 model = YOLO(model_path)
-
 print("Model classes:", model.names)
 
 def try_open_capture(source, backend=None):
@@ -53,7 +56,6 @@ def try_open_capture(source, backend=None):
         return None
     return cap
 
-
 def backend_name(backend):
     if backend is None:
         return "default"
@@ -62,7 +64,6 @@ def backend_name(backend):
     if hasattr(cv2, "CAP_MSMF") and backend == cv2.CAP_MSMF:
         return "CAP_MSMF"
     return str(backend)
-
 
 class SyntheticCapture:
     def __init__(self, width=640, height=480, color=(0, 0, 0)):
@@ -87,9 +88,7 @@ class SyntheticCapture:
     def set(self, prop, value):
         return False
 
-
 def find_available_camera():
-    """Try to find an available camera on Windows and fallback to default backends."""
     backends = []
     if hasattr(cv2, "CAP_DSHOW"):
         backends.append(cv2.CAP_DSHOW)
@@ -97,7 +96,7 @@ def find_available_camera():
         backends.append(cv2.CAP_MSMF)
     backends.append(None)
 
-    for i in range(5):  # Try camera indexes 0-4
+    for i in range(5):  
         for backend in backends:
             cap = try_open_capture(i, backend)
             if cap is None:
@@ -129,10 +128,16 @@ else:
                 cap = None
         if cap is None:
             print("Warning: No webcam available and no fallback video found.")
-            print("Using a blank test feed instead. Run with a real video file via: python detect.py your_video.mp4")
+            print("Using a blank test feed instead.")
             cap = SyntheticCapture()
 
-
+# --- SETUP VIDEO WRITER FOR SAVING HEADLESS PIPELINE OUTPUT ---
+frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) or 640
+frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) or 480
+fps = int(cap.get(cv2.CAP_PROP_FPS)) or 20
+output_video_path = "output/detected_fire.mp4"
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+video_writer = cv2.VideoWriter(output_video_path, fourcc, fps, (frame_width, frame_height))
 
 def send_email_alert():
     def send():
@@ -175,10 +180,8 @@ if not SIMPLEAUDIO_AVAILABLE:
     else:
         print("Warning: simpleaudio unavailable and winsound not available; audio alerts are disabled.")
 
-
 def play_alarm_sound():
     global play_obj
-
     if SIMPLEAUDIO_AVAILABLE and wave_obj is not None:
         try:
             if play_obj is not None and getattr(play_obj, "is_playing", lambda: False)():
@@ -205,7 +208,6 @@ def play_alarm_sound():
     print("Audio alert unavailable.")
 
 play_obj = None
-
 fire_frames = 0
 last_alert_time = 0
 COOLDOWN = 2  
@@ -215,7 +217,6 @@ try:
         ret, frame = cap.read()
         if not ret or frame is None:
             if isinstance(cap, cv2.VideoCapture) and cap.get(cv2.CAP_PROP_FRAME_COUNT) > 0:
-                # If it's a video file, loop it
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 ret, frame = cap.read()
                 if not ret or frame is None:
@@ -223,16 +224,14 @@ try:
                     break
             else:
                 print("Error: Could not read frame from camera/video.")
-                time.sleep(1)  # Wait a bit before retrying
+                time.sleep(1)
                 continue
 
         results = model(frame)
-
         fire_detected = False
 
         for result in results:
             boxes = result.boxes
-
             if boxes is not None:
                 for box in boxes:
                     cls = int(box.cls[0])
@@ -260,17 +259,19 @@ try:
             if getattr(play_obj, "is_playing", lambda: False)():
                 play_obj.stop()
 
-        frame = results[0].plot()
-        cv2.imshow("Fire Detection System", frame)
+        # Generate the bounding box visual frame
+        annotated_frame = results[0].plot()
+        
+        # Save frame to output mp4 file instead of showing window
+        video_writer.write(annotated_frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
 except KeyboardInterrupt:
     print("Interrupted by user.")
 except Exception as e:
     print(f"An error occurred: {e}")
 finally:
     cap.release()
-    cv2.destroyAllWindows()
+    video_writer.release() # Clean up file writer
+    print("Video output saved to output/detected_fire.mp4")
     if play_obj is not None and getattr(play_obj, "is_playing", lambda: False)():
         play_obj.stop()

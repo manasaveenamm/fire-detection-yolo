@@ -1,15 +1,14 @@
 import os
 import matplotlib
 matplotlib.use('Agg')  # Forces matplotlib to run without a GUI monitor
-os.environ["QT_QPA_PLATFORM"] = "offscreen"  # Forces OpenCV to run without a GUI monitorimport cv2
-from ultralytics import YOLO
+os.environ["QT_QPA_PLATFORM"] = "offscreen"  # Forces OpenCV to run without a GUI monitor
+
+import cv2
 import smtplib
-import cv2  # <--- MAKE SURE THIS LINE IS EXPLICITLY HERE!
 from ultralytics import YOLO
 from email.mime.text import MIMEText
 import threading
 import time
-import os
 import sys
 import platform
 import numpy as np
@@ -70,18 +69,26 @@ def backend_name(backend):
 
 
 class SyntheticCapture:
-    def __init__(self, width=640, height=480, color=(0, 0, 0)):
-        self.width = width
-        self.height = height
-        self.color = color
+    def __init__(self, image_url):
+        import urllib.request
+        self.image_url = image_url
+        self.frame = None
+        try:
+            print(f"Downloading testing fire asset from: {image_url}")
+            resp = urllib.request.urlopen(image_url)
+            image_bytes = np.asarray(bytearray(resp.read()), dtype="uint8")
+            self.frame = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
+        except Exception as e:
+            print("Could not fetch remote test asset, falling back to empty canvas:", e)
+            self.frame = np.zeros((480, 640, 3), dtype=np.uint8)
 
     def isOpened(self):
         return True
 
     def read(self):
-        frame = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        frame[:] = self.color
-        return True, frame
+        # Returns the fire image repeatedly to verify processing and triggers alerts
+        time.sleep(0.5) 
+        return True, self.frame.copy()
 
     def release(self):
         pass
@@ -133,10 +140,10 @@ else:
                 cap.release()
                 cap = None
         if cap is None:
-            print("Warning: No webcam available and no fallback video found.")
-            print("Using a blank test feed instead. Run with a real video file via: python detect.py your_video.mp4")
-            cap = SyntheticCapture()
-
+            print("Warning: No webcam available. Injecting active remote fire asset for testing.")
+            # High-resolution clear campfire asset from Unsplash to test your live inference
+            test_fire_url = "https://images.unsplash.com/photo-1508873699372-7aeab60b44ab?w=640"
+            cap = SyntheticCapture(image_url=test_fire_url)
 
 
 def send_email_alert():
@@ -162,6 +169,7 @@ def send_email_alert():
     threading.Thread(target=send).start()
 
 def log_fire_event():
+    os.makedirs("output", exist_ok=True)
     with open("output/log.txt", "a") as f:
         f.write(f"Fire detected at {time.ctime()}\n")
 
@@ -255,7 +263,7 @@ try:
         current_time = time.time()
 
         if fire_frames >= 2 and (current_time - last_alert_time > COOLDOWN):
-            print("🔥 FIRE DETECTED !!!")
+            print("🔥 FIRE DETECTED !!! Triggering Automation Actions...")
             play_alarm_sound()
             send_email_alert()
             log_fire_event()
@@ -266,10 +274,6 @@ try:
                 play_obj.stop()
 
         frame = results[0].plot()
-      #  cv2.imshow("Fire Detection System", frame)
-
-      #  if cv2.waitKey(1) & 0xFF == ord("q"):
-        #    break
 except KeyboardInterrupt:
     print("Interrupted by user.")
 except Exception as e:

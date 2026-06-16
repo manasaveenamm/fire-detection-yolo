@@ -267,7 +267,7 @@ try:
       #  cv2.imshow("Fire Detection System", frame)
 
       #  if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
+        #    break
 except KeyboardInterrupt:
     print("Interrupted by user.")
 except Exception as e:

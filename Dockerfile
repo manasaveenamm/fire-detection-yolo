@@ -27,8 +27,7 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Copy requirements file and install specific python packages
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
+RUN pip install --no-cache-dir --no-deps -r requirements.txt
 # Copy your source code, model weights, and scripts
 COPY . .
 

@@ -1,4 +1,7 @@
-import cv2
+import os
+import matplotlib
+matplotlib.use('Agg')  # Forces matplotlib to run without a GUI monitor
+os.environ["QT_QPA_PLATFORM"] = "offscreen"  # Forces OpenCV to run without a GUI monitorimport cv2
 from ultralytics import YOLO
 import smtplib
 from email.mime.text import MIMEText
@@ -261,9 +264,9 @@ try:
                 play_obj.stop()
 
         frame = results[0].plot()
-        cv2.imshow("Fire Detection System", frame)
+      #  cv2.imshow("Fire Detection System", frame)
 
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+      #  if cv2.waitKey(1) & 0xFF == ord("q"):
             break
 except KeyboardInterrupt:
     print("Interrupted by user.")

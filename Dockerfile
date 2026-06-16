@@ -1,35 +1,21 @@
-# Changed from buster to bookworm to fix the 404 apt-get update error
-FROM python:3.9-slim-bookworm
+FROM python:3.9-slim
 
-# Metadata
-LABEL description="Customized YOLOv5/v8 Fire Detection Environment"
-
-# Prevent Python from writing pyc files and buffering stdout/stderr
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Install system-level dependencies required for OpenCV and graphics acceleration
+# Install only the absolute bare minimum system library needed for OpenCV Headless
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libgl1-mesa-glx \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
-# Upgrade pip and install common heavy ML dependencies first
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+# Upgrade pip to the latest stable release
+RUN pip install --no-cache-dir --upgrade pip
 
-# Copy requirements file and install specific python packages
+# Copy and install dependencies safely
 COPY requirements.txt .
-RUN pip install --no-cache-dir --no-deps -r requirements.txt
-# Copy your source code, model weights, and scripts
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the application code and model weights
 COPY . .
 
-# Script to run when container starts
+# Run the live detector application
 CMD ["python", "detect.py"]

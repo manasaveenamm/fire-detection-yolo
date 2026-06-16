@@ -75,7 +75,12 @@ class SyntheticCapture:
         self.frame = None
         try:
             print(f"Downloading testing fire asset from: {image_url}")
-            resp = urllib.request.urlopen(image_url)
+            # Creating a request with a proper browser User-Agent header to bypass 403 blocks
+            req = urllib.request.Request(
+                image_url, 
+                headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+            )
+            resp = urllib.request.urlopen(req)
             image_bytes = np.asarray(bytearray(resp.read()), dtype="uint8")
             self.frame = cv2.imdecode(image_bytes, cv2.IMREAD_COLOR)
         except Exception as e:

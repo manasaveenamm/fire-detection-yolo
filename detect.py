@@ -145,7 +145,7 @@ else:
                 cap = None
         if cap is None:
             print("Warning: No webcam available. Injecting active remote fire asset for testing.")
-            test_fire_url = "https://raw.githubusercontent.com/ultralytics/yolov5/master/data/images/bus.jpg"
+            test_fire_url = "https://raw.githubusercontent.com/gandhi93/Fire-Detection/master/Fire-Detection-Image-Dataset/Fire/fire.1.jpg"
             cap = SyntheticCapture(image_url=test_fire_url)
 
 

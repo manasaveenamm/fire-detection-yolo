@@ -86,7 +86,6 @@ class SyntheticCapture:
         return True
 
     def read(self):
-        # Returns the fire image repeatedly to verify processing and triggers alerts
         time.sleep(0.5) 
         return True, self.frame.copy()
 
@@ -141,7 +140,6 @@ else:
                 cap = None
         if cap is None:
             print("Warning: No webcam available. Injecting active remote fire asset for testing.")
-            # High-resolution clear campfire asset from Unsplash to test your live inference
             test_fire_url = "https://images.unsplash.com/photo-1508873699372-7aeab60b44ab?w=640"
             cap = SyntheticCapture(image_url=test_fire_url)
 
@@ -228,7 +226,6 @@ try:
         ret, frame = cap.read()
         if not ret or frame is None:
             if isinstance(cap, cv2.VideoCapture) and cap.get(cv2.CAP_PROP_FRAME_COUNT) > 0:
-                # If it's a video file, loop it
                 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 ret, frame = cap.read()
                 if not ret or frame is None:
@@ -236,28 +233,25 @@ try:
                     break
             else:
                 print("Error: Could not read frame from camera/video.")
-                time.sleep(1)  # Wait a bit before retrying
+                time.sleep(1)
                 continue
 
-      results = model(frame)
-
+        results = model(frame)
         fire_detected = False
 
         for result in results:
             boxes = result.boxes
-
             if boxes is not None:
                 for box in boxes:
                     cls = int(box.cls[0])
                     label = model.names[cls]
                     conf = float(box.conf[0])
                     
-                    # Debug print to see exactly what the model sees in the logs
                     print(f"--> Spotted entity: '{label}' with confidence: {conf:.2f}")
 
-                    # Lowered threshold to 0.10 to catch lower-confidence fires
                     if "fire" in label.lower() and conf > 0.10:
                         fire_detected = True
+
         if fire_detected:
             fire_frames += 1
         else:

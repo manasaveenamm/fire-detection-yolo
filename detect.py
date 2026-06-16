@@ -140,7 +140,7 @@ else:
                 cap = None
         if cap is None:
             print("Warning: No webcam available. Injecting active remote fire asset for testing.")
-            test_fire_url = "https://images.unsplash.com/photo-1508873699372-7aeab60b44ab?w=640"
+            test_fire_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Large_bonfire.jpg/640px-Large_bonfire.jpg"
             cap = SyntheticCapture(image_url=test_fire_url)
 
 

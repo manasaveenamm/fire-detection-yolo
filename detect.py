@@ -4,6 +4,8 @@ matplotlib.use('Agg')  # Forces matplotlib to run without a GUI monitor
 os.environ["QT_QPA_PLATFORM"] = "offscreen"  # Forces OpenCV to run without a GUI monitorimport cv2
 from ultralytics import YOLO
 import smtplib
+import cv2  # <--- MAKE SURE THIS LINE IS EXPLICITLY HERE!
+from ultralytics import YOLO
 from email.mime.text import MIMEText
 import threading
 import time

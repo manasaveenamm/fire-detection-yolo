@@ -239,7 +239,7 @@ try:
                 time.sleep(1)  # Wait a bit before retrying
                 continue
 
-        results = model(frame)
+      results = model(frame)
 
         fire_detected = False
 
@@ -251,10 +251,13 @@ try:
                     cls = int(box.cls[0])
                     label = model.names[cls]
                     conf = float(box.conf[0])
+                    
+                    # Debug print to see exactly what the model sees in the logs
+                    print(f"--> Spotted entity: '{label}' with confidence: {conf:.2f}")
 
-                    if label.lower() == "fire" and conf > 0.25:
+                    # Lowered threshold to 0.10 to catch lower-confidence fires
+                    if "fire" in label.lower() and conf > 0.10:
                         fire_detected = True
-
         if fire_detected:
             fire_frames += 1
         else:

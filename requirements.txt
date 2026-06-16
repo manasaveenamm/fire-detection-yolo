@@ -1,5 +1,4 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
---no-deps
 torch
 torchvision
 opencv-python-headless
